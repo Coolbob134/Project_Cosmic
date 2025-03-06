@@ -7,6 +7,7 @@ def main():
     print("TEMP")
     menus.start_menu()
     singleplayer.mainloop()
+    menus.start_menu()
 
 
 if __name__ == "__main__" : main()
