@@ -12,15 +12,19 @@ class enemy:
     size = 0
     active = True
 
-    def __init__(self,x,y,size,speed):
+    def __init__(self,x,y,speed):
         self.x = x
         self.y = y
-        self.size = size
+        self.size = 16
         self.active = True
         self.speed = speed
+
+        self.sprite = picture.Picture("assets/enemy/Enemy.png")
+        self.sprite_alternate = picture.Picture("assets/enemy/Enemy_alternate1.png")
+        self.sprite_state = 1
+        self.sprite_timer = 10
     
     def update(self):
-        stddraw.square(self.x/stddraw._canvasWidth,self.y/stddraw._canvasHeight,self.size/stddraw._canvasWidth)
         rand1 = random.randint(1,5)
         if rand1 == 1:
             rand1 = random.randint(1,3)
@@ -34,6 +38,23 @@ class enemy:
                 self.y -= self.speed
         if self.y <= 0:
             self.active = False
+        
+        self.draw()
+
+    def draw(self):
+        
+        
+        match self.sprite_state:
+            case 1: stddraw.picture(self.sprite,self.x/stddraw._canvasWidth,self.y/stddraw._canvasHeight,self.size*2/stddraw._canvasWidth,self.size*2/stddraw._canvasWidth)
+            case 2: stddraw.picture(self.sprite_alternate,self.x/stddraw._canvasWidth,self.y/stddraw._canvasHeight,self.size*2/stddraw._canvasWidth,self.size*2/stddraw._canvasWidth)
+
+        if self.sprite_timer <= 0:
+            match self.sprite_state:
+                case 1: self.sprite_state = 2
+                case 2: self.sprite_state = 1
+            self.sprite_timer = 10
+        else:
+            self.sprite_timer -= 1
 
 class player:
     x = 0
@@ -45,35 +66,55 @@ class player:
     def __init__(self):
         self.health = 10
         self.score = 0
-        self.x = 20
-        self.y = 20
+        self.x = 32
+        self.y = 32
+
+        self.sprite = picture.Picture("assets/player/player.png")
+        self.sprite_alternate1 = picture.Picture("assets/player/player_alternate1.png")
+        self.sprite_hurt = picture.Picture("assets/player/player_hurt.png")
+        self.spritestate = 1
+        self.spritetimer = 10
+
     
-    def drawplr(self):
-        stddraw.circle(self.x/stddraw._canvasWidth,self.y/stddraw._canvasHeight,0.01)
+    def draw(self):
+        match self.spritestate:
+            case 1: stddraw.picture(self.sprite,self.x/stddraw._canvasWidth,self.y/stddraw._canvasHeight,0.04,0.08) # normal
+            case 2: stddraw.picture(self.sprite_alternate1,self.x/stddraw._canvasWidth,self.y/stddraw._canvasHeight,0.04,0.08) # alternate1
+            case 3: stddraw.picture(self.sprite_hurt,self.x/stddraw._canvasWidth,self.y/stddraw._canvasHeight,0.04,0.08) # hurt
+        
+        if self.spritetimer <= 0: #every nth frame switch states
+            match self.spritestate:
+                case 1: self.spritestate = 2 # alternate1
+                case 2: self.spritestate = 1 # alternate1
+            self.spritetimer = 10
+        else:
+            self.spritetimer-= 1
+        
     
     def update(self):
         if self.invincibility_timer > 0:
             self.invincibility_timer -= 1
 
         if self.invincibility_timer == 0 or self.invincibility_timer % 3 != 0:
-            self.drawplr()
+            self.draw()
         else:
-            stddraw.setPenColor(stddraw.WHITE)
-            self.drawplr()
-            stddraw.setPenColor(stddraw.BLACK)
+            temp = self.spritestate
+            self.spritestate = 3
+            self.draw()
+            self.spritestate = temp
     
     def move(self,x,y):
         
         self.x += x 
         self.y += y
-        if self.x <0:
-            self.x = 0
-        if self.x > 800:
-            self.x = 800
-        if self.y <0:
-            self.y = 0
-        if self.y > 800:
-            self.y = 800
+        if self.x <16:
+            self.x = 16
+        if self.x > 784:
+            self.x = 784
+        if self.y <20:
+            self.y = 20
+        if self.y > 768:
+            self.y = 768
 
 class bullet:
     x = 0
@@ -88,12 +129,30 @@ class bullet:
         self.vel[1] = vely
         self.active = True
 
+        self.sprite = picture.Picture("assets/player/bullet_player.png")
+        self.sprite_alternate1 = picture.Picture("assets/player/bullet_player_alternate1.png")
+        self.sprite_state = 1
+        self.sprite_timer = 5
+
     def update(self):
         if (self.x >= stddraw._canvasWidth or self.x <= 0) or (self.y >= stddraw._canvasHeight or self.y <= 0):
             self.active = False
         self.x += self.vel[0]
         self.y += self.vel[1]
-        stddraw.filledCircle(self.x/stddraw._canvasWidth,self.y/stddraw._canvasWidth,0.01)
+        self.draw()
+    
+    def draw(self):
+        match self.sprite_state:
+            case 1: stddraw.picture(self.sprite,self.x/stddraw._canvasWidth,self.y/stddraw._canvasHeight,0.04,0.04)
+            case 2: stddraw.picture(self.sprite_alternate1,self.x/stddraw._canvasWidth,self.y/stddraw._canvasHeight,0.04,0.04)
+
+        if self.sprite_timer <= 0:
+            match self.sprite_state:
+                case 1: self.sprite_state = 2
+                case 2: self.sprite_state = 1
+            self.sprite_timer = 1
+        else:
+            self.sprite_timer -= 1
 
 def mainloop():
 
@@ -112,13 +171,13 @@ def mainloop():
             break
         if stddraw.hasNextKeyTyped():
             match stddraw.nextKeyTyped():
-                case 'a': plr.move(-40,0)
-                case 'd': plr.move(40,0)
-                case 'w': plr.move(0,40)
-                case 's': plr.move(0,-40)
-                case ' ': bullets.append(bullet(plr.x,plr.y,0,50))
+                case 'a': plr.move(-32,0)
+                case 'd': plr.move(32,0)
+                case 'w': plr.move(0,32)
+                case 's': plr.move(0,-32)
+                case ' ': bullets.append(bullet(plr.x,plr.y,0,64))
                 case '\x1b': menus.pause_menu()
-                case 'p': enemies.append(enemy(random.randrange(20,780,40),780,20,40))
+                case 'p': enemies.append(enemy(random.randrange(16,784,16),784,32))
                 
 
         plr.update()
@@ -172,6 +231,8 @@ def endlessloop(): # endless gamemode
     healthgained = True
     difficulty_factor = 1
 
+    
+
     while gameactive == True:
         
         
@@ -185,19 +246,19 @@ def endlessloop(): # endless gamemode
                 case 'd': plr.move(40,0)
                 case 'w': plr.move(0,40)
                 case 's': plr.move(0,-40)
-                case ' ': bullets.append(bullet(plr.x,plr.y,0,50))
+                case ' ': bullets.append(bullet(plr.x,plr.y,0,32))
                 case '\x1b': menus.pause_menu()
-                case 'p': enemies.append(enemy(random.randrange(20,780,40),780,20,40))
+                case 'p': enemies.append(enemy(random.randrange(16,784,16),784,32))
 
 
         if enemycooldown <= 0 and random.randint(1,int(10*difficulty_factor)) == 1:
             enemycooldown = 20*difficulty_factor
-            enemies.append(enemy(random.randrange(0,800,20),780,20,40))
+            enemies.append(enemy(random.randrange(16,784,16),768,32))
             if plr.score >= 50:
-                enemies.append(enemy(random.randrange(0,800,20),780,20,40))
+                enemies.append(enemy(random.randrange(16,784,16),768,32))
                 if plr.score >= 100:
-                    enemies.append(enemy(random.randrange(0,800,20),780,20,40))
-                    enemies.append(enemy(random.randrange(0,800,20),780,20,40))
+                    enemies.append(enemy(random.randrange(16,784,16),768,32))
+                    enemies.append(enemy(random.randrange(16,784,16),768,32))
         else:
             enemycooldown -= 1
 
