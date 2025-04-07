@@ -336,7 +336,6 @@ def mainloop():
 
     stddraw.setPenColor(stddraw.LIGHT_GRAY)
 
-    bawss = boss(400,400,10)
     
 
     while gameactive == True:
@@ -348,7 +347,6 @@ def mainloop():
         stddraw.picture(lvl.background,0.5,0.5,1,1)
 
         
-        bawss.update()
 
         if plr.health <= 0:
             gameactive = False

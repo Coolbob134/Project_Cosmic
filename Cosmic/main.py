@@ -1,10 +1,11 @@
 import stdio, sys, random, picture, stddraw
 
-import menus,singleplayer
+import menus,singleplayer,leveleditor
 
 def main():
     stddraw.setCanvasSize(800,800)
     
+
     menus.start_menu()
     
     singleplayer.mainloop()
