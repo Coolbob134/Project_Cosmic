@@ -4,10 +4,11 @@ import menus,singleplayer
 
 def main():
     stddraw.setCanvasSize(800,800)
+    
     menus.start_menu()
     
-    # singleplayer.mainloop()
-    singleplayer.endlessloop()
+    singleplayer.mainloop()
+    
     menus.inputTest()
 
 
