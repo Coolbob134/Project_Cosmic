@@ -1,4 +1,4 @@
-import stddraw, random
+import stddraw, random, math
 
 import menus
 import picture
@@ -12,6 +12,7 @@ class level:
     nexttimer = 0   # Timer until next event
     level_counter  = 0
     background = 0
+    high_score = -1
     
 
     def __init__(self):
@@ -23,7 +24,7 @@ class level:
         self.bossfightactive = False
         self.level_path = ''
         self.level_counter = 1
-        self.endlessmode = True
+        self.endlessmode = False
 
         self.background = picture.Picture("assets/backgrounds/normal_background.png")
         self.boss_background = picture.Picture("assets/backgrounds/boss_background.png")
@@ -32,13 +33,27 @@ class level:
 
     def update(self):
        
-        
         match self.contents[self.event_counter][0]:
-            case 3: self.bossfightactive == True; return [4,0,0,0]      #boss
-            case 4: self.bossfightactive == True; return [4,0,0,0]      #boss_x
+            case 3:                                                     #boss
+                if self.bossfightactive == False:                    
+                    self.bossfightactive = True
+                    returnarr = self.contents[self.event_counter][:4] 
+                    if self.contents[self.event_counter+1][0] == 3 or self.contents[self.event_counter+1][0] == 4:
+                        self.event_counter += 1
+                        self.bossfightactive = False
+                    return returnarr
+            case 4:                                                     #boss_x
+                if self.bossfightactive == False:   
+                    self.bossfightactive = True
+                    if self.contents[self.event_counter+1][0] == 3 or self.contents[self.event_counter+1][0] == 4:
+                        self.event_counter += 1
+                        self.bossfightactive = False
+                    return [4,0,0,0]
             case 5: self.background = self.boss_background              #boss_bg
             case 6: self.background = self.normal_background            #normal_bg
-            case 7: return [7,0,0,0]                                    #endless mode
+            case 7: 
+                self.endlessmode = True
+                return [7,0,0,0]                                    #endless mode
             case 8:                                                     #next_lvl
                 self.loadnextlevel()
                 self.event_counter = 0
@@ -47,6 +62,12 @@ class level:
             case 9:                                                     #wait_empty
                 if self.isempty == False: self.waitempty = True
                 else: self.waitempty = False
+            case 42:
+                returnarr = self.contents[self.event_counter][:4]
+                self.high_score = returnarr[1]
+                self.event_counter += 1
+                return returnarr
+                
 
         if self.bossfightactive == False and self.endlessmode == False and not((self.waitempty == True and self.isempty == False)):
         
@@ -101,7 +122,7 @@ class level:
         self.nexttimer = self.contents[0][4]
         
 
-class boss:
+class boss: # TODO add boss mechanics
     x = 0
     y = 0
     size = 0
@@ -159,7 +180,7 @@ class boss:
                 stddraw.picture(self.sprite_alternate,self.x/stddraw._canvasWidth,self.y/stddraw._canvasHeight,self.size/stddraw._canvasWidth,self.size/stddraw._canvasHeight)
 
 
-class enemy:
+class enemy: #TODO check whether random movement is ok
     x = 0
     y = 0
     size = 0
@@ -184,25 +205,25 @@ class enemy:
         self.sprite_state = 1
         self.sprite_timer = 10
     
-    def update(self):
-        rand1 = random.randint(1,5)
-        if self.health <= 0:
-            self.active = False
-            rand1 = 0
-        if rand1 == 1:
-            rand1 = random.randint(1,3)
-            if rand1 == 1 and self.x < stddraw._canvasWidth-self.speed:
-                self.x += self.speed
-            else:
-                if rand1 == 2 and self.x > self.speed:
-                    self.x -= self.speed
-            rand1 = random.randint(1,3)
-            if rand1 == 1:
+    def update(self,enemy_state = 0):
+
+        match enemy_state:
+            case 0: # idle
+                pass
+            case 1: # down
                 self.y -= self.speed
+            case 2: # left
+                if self.x > self.speed:
+                    self.x -= self.speed
+            case 3: # right
+                if self.x < stddraw._canvasWidth-self.speed:
+                    self.x += self.speed
         if self.y <= 0:
             self.active = False
+            return -1
         
         self.draw()
+        
 
     def draw(self):
         
@@ -218,15 +239,17 @@ class enemy:
             self.sprite_timer = 10
         else:
             self.sprite_timer -= 1
+        
 
 
 
-class player:
+class player: #TODO check if movement is compliant
     x = 0
     y = 0
     health = 10
     score = 0
     invincibility_timer = 0
+    crosshair_lookup = {} #lookup table for the crosshair position
 
     def __init__(self):
         self.health = 10
@@ -234,12 +257,19 @@ class player:
         self.x = 32
         self.y = 32
         self.healthgained = False
+        self.angle = 90
+        self.move_state = 0
+        self.angle_move_state = 0
 
         self.sprite = picture.Picture("assets/player/player.png")
         self.sprite_alternate1 = picture.Picture("assets/player/player_alternate1.png")
         self.sprite_hurt = picture.Picture("assets/player/player_hurt.png")
+        self.crosshair_sprite = picture.Picture("assets/player/crosshair.png")
         self.spritestate = 1
         self.spritetimer = 10
+
+        for k in range(0,190,5):
+            self.crosshair_lookup[k] = [64*math.cos(math.radians(k)),64*math.sin(math.radians(k))]
 
     
     def draw(self):
@@ -255,9 +285,12 @@ class player:
             self.spritetimer = 10
         else:
             self.spritetimer-= 1
+        crosshair_offset = self.crosshair_lookup[self.angle]
+        stddraw.picture(self.crosshair_sprite, (self.x+crosshair_offset[0])/stddraw._canvasWidth,(self.y+crosshair_offset[1])/stddraw._canvasHeight,0.04,0.04)
         
     
     def update(self):
+        self.move()
         if self.invincibility_timer > 0:
             self.invincibility_timer -= 1
 
@@ -269,36 +302,59 @@ class player:
             self.draw()
             self.spritestate = temp
     
-    def move(self,x,y):
+    def move(self):
         
-        self.x += x 
-        self.y += y
+        match self.move_state:
+            case 1:
+                self.x += 8
+            case 2:
+                self.x -= 8
+            case 3:
+                self.x += 16
+            case 4:
+                self.x -= 16
+        
+        match self.angle_move_state:
+            case 1:
+                self.angle += 5
+            case 2:
+                self.angle -= 5
+        
         if self.x <16:
             self.x = 16
+            self.move_state = 1 # bounce back
         if self.x > 784:
             self.x = 784
-        if self.y <20:
-            self.y = 20
-        if self.y > 768:
-            self.y = 768
+            self.move_state = 2 # bounce back
+        if self.angle < 0:
+            self.angle = 0
+            self.angle_move_state = 1
+        if self.angle > 180:
+            self.angle = 180
+            self.angle_move_state = 2
+        # if self.y <20:
+        #     self.y = 20
+        # if self.y > 768:
+        #     self.y = 768
 
-class bullet:
+class bullet: #TODO add non straight bullet velocities and sprite, [particle system]
     x = 0
     y = 0
     vel = [0,0]
     active = True
 
-    def __init__(self,x,y,velx,vely):
+    def __init__(self,x,y,velocity):
         self.x = x
         self.y = y
-        self.vel[0] = velx
-        self.vel[1] = vely
+        self.vel = velocity
         self.active = True
 
         self.sprite = picture.Picture("assets/player/bullet_player.png")
         self.sprite_alternate1 = picture.Picture("assets/player/bullet_player_alternate1.png")
         self.sprite_state = 1
-        self.sprite_timer = 5
+        self.sprite_timer = 3
+
+        self.particles = []
 
     def update(self):
         if (self.x >= stddraw._canvasWidth or self.x <= 0) or (self.y >= stddraw._canvasHeight or self.y <= 0):
@@ -306,6 +362,7 @@ class bullet:
         self.x += self.vel[0]
         self.y += self.vel[1]
         self.draw()
+        self.particles.append(particle(self.x,self.y,1,[0,0]))
     
     def draw(self):
         match self.sprite_state:
@@ -320,19 +377,76 @@ class bullet:
         else:
             self.sprite_timer -= 1
 
-def mainloop():
+        tempcounter = len(self.particles)
+        k = 0
+        while k < tempcounter:
+            self.particles[k].draw()
+            if self.particles[k].counter <= 0:
+                del self.particles[k]
+                tempcounter-=1
+            else:
+                k+= 1
+
+class particle:
+
+    def __init__(self,x,y,type,vel):
+        
+        self.type = type
+        self.counter = 3
+        self.x = x
+        self.y = y
+
+    def draw(self):
+        temp = stddraw._penColor
+        tempradius = stddraw._penRadius
+        self.counter -= 1
+        match self.type:
+            case 1: # bullet particle
+                stddraw.setPenColor(stddraw.BLUE)
+                stddraw.setPenRadius(0.004)
+                stddraw.point((self.x+random.randrange(-16,16,1))/stddraw._canvasWidth,(self.y+random.randrange(-16,16,1))/stddraw._canvasHeight)
+                stddraw.point((self.x+random.randrange(-16,16,1))/stddraw._canvasWidth,(self.y+random.randrange(-16,16,1))/stddraw._canvasHeight)
+                stddraw.point((self.x+random.randrange(-16,16,1))/stddraw._canvasWidth,(self.y+random.randrange(-16,16,1))/stddraw._canvasHeight)
+                stddraw.point((self.x+random.randrange(-16,16,1))/stddraw._canvasWidth,(self.y+random.randrange(-16,16,1))/stddraw._canvasHeight)
+                stddraw.setPenColor(temp)
+                stddraw.setPenRadius(tempradius)
+
+                
+
+
+
+
+def mainloop(mode,lvlpath = "levels/default/level_1"):
 
     plr = player()
     bullets = []
     counter = 0
     enemies = []
     boss_arr = []
+
     gameactive = True
     endlessmode = False
     endless_enemycooldown = 10
+    enemy_state = 0
+    enemy_state_cooldown = 5
+
+    bullet_lookuptbl = {} #lookup table for bullet x and y velocity based on player's rotation (in degrees)
+    bullet_speed = 64 #const for bullets speed
+
+    for k in range(0,190,5):
+        bullet_lookuptbl[k] = [bullet_speed*math.cos(math.radians(k)),bullet_speed*math.sin(math.radians(k))]
+        
+
 
     lvl = level()
-    lvl.loadlevelfromfile("levels/default/level_1")
+    match mode:
+        case 1:
+            lvl.loadlevelfromfile("levels/default/level_1")
+        case 2:
+            lvl.loadlevelfromfile("levels/default/endless")
+        case 3:
+            lvl.loadlevelfromfile(lvlpath)
+
 
     stddraw.setPenColor(stddraw.LIGHT_GRAY)
 
@@ -347,25 +461,56 @@ def mainloop():
         stddraw.picture(lvl.background,0.5,0.5,1,1)
 
         
+        
 
         if plr.health <= 0:
             gameactive = False
-            break
+            if plr.score >= lvl.high_score:
+                    if lvl.high_score != -1:
+                        with open(f"{lvl.level_path}_1","a") as outfile:
+                            outfile.seek(0)
+                            outfile.write(f"42|{lvl.high_score}|0|0|0")
+                        lvl.high_score = plr.score
+                    return [1,plr.score,plr.score]
+            else:
+                return [1,plr.score,lvl.high_score] #dies and ends game, returning scores
+
         if stddraw.hasNextKeyTyped():
             match stddraw.nextKeyTyped():
-                case 'a': plr.move(-32,0)
-                case 'd': plr.move(32,0)
-                case 'w': plr.move(0,32)
-                case 's': plr.move(0,-32)
-                case ' ': bullets.append(bullet(plr.x,plr.y,0,64))
-                case '\x1b': menus.pause_menu()
-                case 'p': enemies.append(enemy(random.randrange(16,784,16),784,2))
+                case 'a':   # move left
+                    if plr.move_state == 2:
+                        plr.move_state = 4 # move faster
+                    else:
+                        if plr.move_state == 3:
+                            plr.move_state = 1  # move slower to the right
+                        else:
+                            plr.move_state = 2
+                case 'd':   # move right
+                    if plr.move_state == 1:
+                        plr.move_state = 3 # move faster
+                    else:
+                        if plr.move_state == 4:
+                            plr.move_state = 2  #move slower to the left
+                        else:
+                            plr.move_state = 1
+        
+                case 's': plr.move_state = 0 # stop moving
+                case 'q': plr.angle_move_state = 1
+                case 'e': plr.angle_move_state = 2
+                case 'w': plr.angle_move_state = 0
+                case ' ': bullets.append(bullet(plr.x,plr.y,bullet_lookuptbl[plr.angle]))
+                case '\x1b': 
+                    if menus.pause_menu() == -1:
+                        return [-1,0,0]
+                    
+                case 'p': enemies.append(enemy(random.randrange(16,784,16),784,2)); lvl.isempty = False
                 
 
         plr.update()
         counter = 0
         counter2 = 0
-        while counter < len(bullets):
+
+        while counter < len(bullets): #collision for bullets
             
             counter2 = 0
             while counter2 < len(enemies): #Checks every enemy for collision.
@@ -375,9 +520,12 @@ def mainloop():
                     if enemies[counter2].health <= 0:
                         plr.score+=1
                         plr.healthgained = False
+                        enemies[counter2].active = False
                     break
                 else:
                     counter2 += 1
+            
+            
             bullets[counter].update()
             if bullets[counter].active == False:
                 del bullets[counter] #deletes off screen bullets or bullets that have hit an enemy
@@ -385,7 +533,18 @@ def mainloop():
                 counter+= 1
 
         counter = 0
-        while counter < len(enemies):
+
+        if enemy_state_cooldown <= 0:
+            enemy_state_cooldown = 5
+            if random.randint(1,2) == 1: # 50% chance of moving
+                enemy_state =  random.randint(1,3)
+            else:   
+                enemy_state =  0 #idle
+        else:
+            enemy_state_cooldown -=1
+            enemy_state = 0     #idle
+
+        while counter < len(enemies): #collision for player and enemies
             
             
             if (enemies[counter].x >= plr.x - enemies[counter].size and enemies[counter].x <= plr.x + enemies[counter].size) and (enemies[counter].y >= plr.y - enemies[counter].size and enemies[counter].y <= plr.y + enemies[counter].size) and enemies[counter].active and player.invincibility_timer == 0:
@@ -393,37 +552,73 @@ def mainloop():
                 plr.health -= 1
                 enemies[counter].active = False
                 
-            enemies[counter].update()
+            
+            if enemies[counter].update(enemy_state) == -1: #enemy hit bottom of the screen
+                if plr.score >= lvl.high_score:
+                    if lvl.high_score != -1:
+                        with open(f"{lvl.level_path}_1","a") as outfile:
+                            outfile.seek(0)
+                            outfile.write(f"42|{lvl.high_score}|0|0|0")
+                        lvl.high_score = plr.score
+                        return [1,plr.score,plr.score]
+                    else:
+                        return [1,plr.score,lvl.high_score] #dies and ends game, returning scores
             if enemies[counter].active == False:
                 del enemies[counter] #deletes enemies that are dead, or enemies that have somehow gotten off screen
             else:
                 counter+= 1
         
-        lvlarray = lvl.update()
+        for k in range(len(boss_arr)):
+            boss_arr[k].update()
 
-        match lvlarray[0]: #actions for the level's state/events
-            case 0: pass    # level is empty    #TODO-> add end screen if it happens
+        if len(enemies) == 0: # no enemies remaining on screen
+            lvl.isempty = True
+        if len(boss_arr) == 0:
+            lvl.bossfightactive = False
+        lvlarray = lvl.update()
+        
+        
+        match lvlarray[0]:  #actions for the level's state/events
+            case 0:         # level is empty[end of level]    #TODO-> add end screen if it happens
+                
+                
+                if plr.score >= lvl.high_score:
+                    if lvl.high_score != -1:
+                        with open(f"{lvl.level_path}_1","a") as outfile:
+                            outfile.seek(0)
+                            outfile.write(f"42|{lvl.high_score}|0|0|0")
+                        lvl.high_score = plr.score
+                    return [2,plr.score,plr.score]
+                else:
+                    return [2,plr.score,lvl.high_score]
             case 1:         # spawn enemy
-                enemies.append(enemy(lvlarray[1]/stddraw._canvasWidth,lvlarray[2]/stddraw._canvasHeight,lvlarray[3]))
+                enemies.append(enemy(lvlarray[1],lvlarray[2],lvlarray[3]))
+                lvl.isempty = False
             case 2:         # spawn enemy with random X
-                enemies.append(enemy(random.randrange(16,784,32)/stddraw._canvasWidth,lvlarray[2]/stddraw._canvasHeight,lvlarray[3]))
+                enemies.append(enemy(random.randrange(16,784,32),lvlarray[2],lvlarray[3]))
+                lvl.isempty = False
             case 3:         # spawn boss
-                pass
+                boss_arr.append(boss(lvlarray[1],lvlarray[2],lvlarray[3]))
             case 4:         # spawn boss with random X
-                pass
-            case 5: pass    # set background to the boss's background
-            case 6: pass    # set background to normal
+                boss_arr.append(boss(random.randrange(0,800,64),lvlarray[2],lvlarray[3]))
+                
+            case 5:         # set background to the boss's background
+                lvl.background = lvl.boss_background
+            case 6:         # set background to normal
+                lvl.background = lvl.normal_background
             case 7:         # set game to endless mode
                 if endlessmode == False:
                     endlessmode = True
             case 8: pass    # load next level
             case 9: pass    # wait until screen is empty (all enemies are killed)
-            case 100: pass  # indicates that level is waiting until screen is empty/ counter == 0
+            case 42: pass   # high score event
+            case 100: pass  # indicates that level is waiting until screen is empty/ counter != 0
 
         if endlessmode == True:     #endless mode logic
 
             if endless_enemycooldown <= 0:
                 enemies.append(enemy(random.randrange(16,784,16),768,1))
+                lvl.isempty = False
                 endless_enemycooldown = random.randrange(1,100)
             else:
                 endless_enemycooldown -= 1

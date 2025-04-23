@@ -40,6 +40,10 @@ Each event has 5 arguments, seperated by `|`. These arguments are all of type `i
 | WAIT_EMPTY    | 9             | N             | N             | N             | N             | Waits until all enemies are cleared from the screen. |
 | COUNTDOWN     | 100           | N             | N             | N             | N             | Not to be used in level file. Indicates that DELAY_TIMER is > 0 (The game is counting down to execute the next event)|
 
+### HIGH SCORE
+
+The high score (event 42) is and exception to the normal event syntax. It uses X_coord as a counter to store the high score. It must be positioned in the first line of the level file.
+
 ## LEVEL PROGRESSION
 
 Level names play a role in how levels are progressed. They must be named with a trailing number indicating the level number, preceded by an underscore (`_`). Levels start indexing at 1.
