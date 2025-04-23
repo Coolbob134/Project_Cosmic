@@ -41,6 +41,7 @@ class level:
                     if self.contents[self.event_counter+1][0] == 3 or self.contents[self.event_counter+1][0] == 4:
                         self.event_counter += 1
                         self.bossfightactive = False
+
                     return returnarr
             case 4:                                                     #boss_x
                 if self.bossfightactive == False:   
@@ -128,6 +129,10 @@ class boss: # TODO add boss mechanics
     size = 0
     active = True
     speed = 0
+    state_timer = 10
+    state = 0
+    movedirection = 0
+    phase = 1
 
     sprite = picture.Picture("assets/boss/boss.png")
     sprite_alternate = picture.Picture("assets/boss/boss_alternate.png")
@@ -140,31 +145,100 @@ class boss: # TODO add boss mechanics
         self.size = 256
         self.active = True
         self.health = health
+        self.maxhealth = health
 
         self.sprite = picture.Picture("assets/boss/boss.png")
         self.sprite_alternate = picture.Picture("assets/boss/boss_alternate.png")
         self.sprite_state = 1
         self.sprite_timer = 10
 
-    def update(self):
-        randomaction = random.randint(1,5)
-        
+    def update(self,bullets = [],playercoords = [0,0]):
+        bulletarr = bullets
+        randomaction = random.randint(0,2)
+
         if self.health <=0:
             self.active = False
             randomaction = 0
         
-        match randomaction:
-            case 1: #move
-                pass
-            case 2: #attack
-                pass
-            case 3: #spawn minion
-                pass
-            case 4: #do nothing
-                pass
-            case 5: #do nothing
-                pass
+        if self.health <= self.maxhealth*0.5:
+            self.phase = 2
         
+        if self.state_timer <= 0:
+            self.state = randomaction
+            match randomaction:
+                case 0: #idle
+                    if self.phase == 1:
+                        self.state_timer = 5
+                    else: #in phase 2, the boss will attack instead of idling
+                        try:
+                            m = (self.y - playercoords[1])/(self.x - playercoords[0])
+                        except:
+                            m = (self.y - playercoords[1])/0.0000001
+                        velx = math.sqrt(256/(1+m**2))
+                        if playercoords[0]-self.x<0: velx = -velx
+                        vely = velx*m
+                        bulletarr.append(boss_bullet(self.x,self.y,[velx,vely]))
+                        self.state_timer = 0
+                case 1: #move
+                    self.movedirection = random.randint(1,4)
+                    if self.phase == 1:
+                        self.state_timer = 10
+                    else:
+                        self.state_timer = 5
+                case 2: #attack
+                    if self.phase == 1:
+                        bulletarr.append(boss_bullet(self.x,self.y,[-16,-16]))
+                        bulletarr.append(boss_bullet(self.x,self.y,[16,16]))
+                        bulletarr.append(boss_bullet(self.x,self.y,[-16,16]))
+                        bulletarr.append(boss_bullet(self.x,self.y,[16,-16]))
+                        bulletarr.append(boss_bullet(self.x,self.y,[-16,0]))
+                        bulletarr.append(boss_bullet(self.x,self.y,[16,0]))
+                        bulletarr.append(boss_bullet(self.x,self.y,[0,16]))
+                        bulletarr.append(boss_bullet(self.x,self.y,[0,-16]))
+                        self.state_timer = 1
+                    else:
+                        try:
+                            m = (self.y - playercoords[1])/(self.x - playercoords[0])
+                        except:
+                            m = (self.y - playercoords[1])/0.0000001
+                        velx = math.sqrt(256/(1+m**2))
+                        if playercoords[0]-self.x<0: velx = -velx
+                        vely = velx*m
+                        bulletarr.append(boss_bullet(self.x,self.y,[velx,vely]))
+                        self.state_timer = 0
+        else:
+            self.state_timer -= 1
+            if self.state == 1: #moving
+                if self.phase == 1:
+                    match self.movedirection:
+                        case 1: #right
+                            self.x += 10
+                        case 2: #left
+                            self.x -= 10
+                        case 3: #up
+                            self.y += 10
+                        case 4:
+                            self.y -= 10
+                else:
+                    match self.movedirection:
+                        case 1: #right
+                            self.x += 20
+                        case 2: #left
+                            self.x -= 20
+                        case 3: #up
+                            self.y += 20
+                        case 4:
+                            self.y -= 20
+        
+        if self.x <= self.size/2:
+            self.x = self.size/2
+        if self.x >= stddraw._canvasWidth-self.size/2:
+            self.x = stddraw._canvasWidth-self.size/2
+        if self.y <= self.size/2:
+            self.y = self.size/2
+        if self.y >= stddraw._canvasHeight-self.size/2:
+            self.y = stddraw._canvasHeight-self.size/2
+            
         if self.sprite_timer <= 0:
             match self.sprite_state:
                 case 1: self.sprite_state = 2
@@ -179,6 +253,36 @@ class boss: # TODO add boss mechanics
             case 2:
                 stddraw.picture(self.sprite_alternate,self.x/stddraw._canvasWidth,self.y/stddraw._canvasHeight,self.size/stddraw._canvasWidth,self.size/stddraw._canvasHeight)
 
+        return bulletarr
+
+class boss_bullet: #TODO fully implement boss bullet
+
+    active = True
+    
+    sprite = picture.Picture("assets/boss/boss_bullet.png")
+
+    def __init__(self,x,y,velocity):
+        self.x = x
+        self.y = y
+        self.velx = velocity[0]
+        self.vely = velocity[1]
+    
+
+    def update(self):
+        
+        self.x += self.velx
+        self.y += self.vely
+
+        if self.x >= stddraw._canvasWidth or self.x <= 0 or self.y >= stddraw._canvasHeight:
+            self.active = False
+        
+        stddraw.picture(self.sprite,self.x/stddraw._canvasWidth,self.y/stddraw._canvasHeight,0.04,0.04)
+        
+        
+
+
+
+        
 
 class enemy: #TODO check whether random movement is ok
     x = 0
@@ -423,6 +527,7 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
     counter = 0
     enemies = []
     boss_arr = []
+    boss_bullets = []
 
     gameactive = True
     endlessmode = False
@@ -467,9 +572,12 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
             gameactive = False
             if plr.score >= lvl.high_score:
                     if lvl.high_score != -1:
-                        with open(f"{lvl.level_path}_1","a") as outfile:
+                        with open(f"{lvl.level_path}_1","r") as infile:
+                            lines = infile.readlines()
+                        lines[0] = f"42|{plr.score}|0|0|0\n"
+                        with open(f"{lvl.level_path}_1","w") as outfile:
                             outfile.seek(0)
-                            outfile.write(f"42|{lvl.high_score}|0|0|0")
+                            outfile.writelines(lines)
                         lvl.high_score = plr.score
                     return [1,plr.score,plr.score]
             else:
@@ -525,6 +633,22 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
                 else:
                     counter2 += 1
             
+            counter2 = 0
+
+            while counter2 < len(boss_arr): # Check bosses for collision.
+                if (bullets[counter].x >= boss_arr[counter2].x - boss_arr[counter2].size/2 and bullets[counter].x <= boss_arr[counter2].x + boss_arr[counter2].size/2) and (bullets[counter].y>= boss_arr[counter2].y - boss_arr[counter2].size/2 and bullets[counter].y <= boss_arr[counter2].y + boss_arr[counter2].size/2) and bullets[counter].active == True:
+                    boss_arr[counter2].health -= 1
+                    bullets[counter].active = False
+                    if boss_arr[counter2].health <= 0:
+                        plr.score += 50
+                        plr.healthgained = False
+                        plr.health += 5
+                        boss_arr[counter2].active = False
+                        
+                    break
+                else:
+                    counter2 += 1
+            
             
             bullets[counter].update()
             if bullets[counter].active == False:
@@ -554,39 +678,70 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
                 
             
             if enemies[counter].update(enemy_state) == -1: #enemy hit bottom of the screen
-                if plr.score >= lvl.high_score:
+                if plr.score > lvl.high_score:
                     if lvl.high_score != -1:
-                        with open(f"{lvl.level_path}_1","a") as outfile:
+                        with open(f"{lvl.level_path}_1","r") as infile:
+                            lines = infile.readlines()
+                        lines[0] = f"42|{plr.score}|0|0|0\n"
+                        with open(f"{lvl.level_path}_1","w") as outfile:
                             outfile.seek(0)
-                            outfile.write(f"42|{lvl.high_score}|0|0|0")
+                            outfile.writelines(lines)
                         lvl.high_score = plr.score
+
                         return [1,plr.score,plr.score]
-                    else:
-                        return [1,plr.score,lvl.high_score] #dies and ends game, returning scores
+                else:
+                    return [1,plr.score,lvl.high_score] #dies and ends game, returning scores
             if enemies[counter].active == False:
                 del enemies[counter] #deletes enemies that are dead, or enemies that have somehow gotten off screen
             else:
                 counter+= 1
         
-        for k in range(len(boss_arr)):
-            boss_arr[k].update()
+
+        counter = 0
+        while counter < len(boss_arr):
+
+            boss_bullets = boss_arr[counter].update(boss_bullets,[plr.x,plr.y])
+
+            if boss_arr[counter].active == False:
+                del boss_arr[counter]
+            else:
+                counter += 1
+
+        counter = 0
+        while counter < len(boss_bullets): #bosses bullets update
+
+            if (boss_bullets[counter].x >= plr.x - 32 and boss_bullets[counter].x <= plr.x + 32) and (boss_bullets[counter].y >= plr.y - 64 and boss_bullets[counter].y <= plr.y + 64) and plr.invincibility_timer <= 0:
+                boss_bullets[counter].active = False
+                plr.health -= 1
+                plr.invincibility_timer = 50
+            
+            if boss_bullets[counter].active == True:
+                boss_bullets[counter].update()
+                counter += 1
+            else:
+                del boss_bullets[counter]
+
+
 
         if len(enemies) == 0: # no enemies remaining on screen
             lvl.isempty = True
         if len(boss_arr) == 0:
-            lvl.bossfightactive = False
+            if lvl.bossfightactive == True:
+                lvl.event_counter += 1
+                lvl.bossfightactive = False
         lvlarray = lvl.update()
         
         
         match lvlarray[0]:  #actions for the level's state/events
             case 0:         # level is empty[end of level]    #TODO-> add end screen if it happens
-                
-                
                 if plr.score >= lvl.high_score:
                     if lvl.high_score != -1:
-                        with open(f"{lvl.level_path}_1","a") as outfile:
+                        with open(f"{lvl.level_path}_1","r") as infile:
+                            lines = infile.readlines()
+                        lines[0] = f"42|{plr.score}|0|0|0\n"
+                        with open(f"{lvl.level_path}_1","w") as outfile:
                             outfile.seek(0)
-                            outfile.write(f"42|{lvl.high_score}|0|0|0")
+                            outfile.writelines(lines)
                         lvl.high_score = plr.score
                     return [2,plr.score,plr.score]
                 else:

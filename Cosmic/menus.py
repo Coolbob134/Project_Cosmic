@@ -38,15 +38,18 @@ def start_menu():
                 stddraw.setPenColor(stddraw.BLACK)
                 match endstate[0]: #TODO Add end screens
                     case 1:
-                        match lost_menu(endstate):
+                        match end_menu(endstate):
                             case 1:
                                 selectedbutton = 0 #play again
                             case 2:
                                 selectedbutton = -1
                         
                     case 2:
-                        print("won")
-                        selectedbutton = -1
+                        match end_menu(endstate,won=True):
+                            case 1:
+                                selectedbutton = 0 #play again
+                            case 2:
+                                selectedbutton = -1
                     case -1:
                         selectedbutton = -1
             case 1:
@@ -57,13 +60,17 @@ def start_menu():
                     endstate = mainloop(3,lvlpath=lvlpath)
                     match endstate[0]:
                         case 1:
-                            match lost_menu(endstate):
+                            match end_menu(endstate):
                                 case 1:
                                     selectedbutton = 1 #play again
                                 case 2:
                                     selectedbutton = -1
                         case 2:
-                            print("won")
+                            match end_menu(endstate, won=True):
+                                case 1:
+                                    selectedbutton = 1 #play again
+                                case 2:
+                                    selectedbutton = -1
                         case -1:
                             selectedbutton = -1
                 stddraw.setPenColor(stddraw.BLACK)
@@ -87,32 +94,42 @@ def start_menu():
         #             case ' ': break
         #             case 'h': help_menu()
         
-def lost_menu(pointsarray = [0,0]):
+def end_menu(argarray = [0,0,0], won = False):
     
     restartTimer = 100 #10 seconds
     
-    buttonnums = [[0.5,0.5,0.04,0.12],[0.7,0.5,0.04,0.04],[0.5,0.4,0.04,0.12]]
-    button = [btn(0.5,0.5,0.04,0.12,f"PLAY AGAIN [{restartTimer}]"),btn(0.7,0.5,0.04,0.04,"X"),btn(0.5,0.4,0.04,0.12,"MAIN MENU")]
+    buttonnums = [[0.5,0.5,0.04,0.12],[0.5,0.4,0.04,0.12],[0.7,0.5,0.04,0.04]]
+    button = [btn(0.5,0.5,0.04,0.12,f"PLAY AGAIN [{restartTimer}]"),btn(0.5,0.4,0.04,0.12,"MAIN MENU"),btn(0.675,0.5,0.04,0.04,"X")]
     selectedbutton = -1
 
+    score = argarray[1]
+    high_score = argarray[2]
 
 
     while 1==1:
         stddraw.clear(stddraw.GRAY)
         stddraw.setFontSize(50)
-        
-        stddraw.text(0.5,0.9,"GAME OVER")
+        if won == True:
+            stddraw.text(0.5,0.9,"YOU WON!")
+        else:
+            stddraw.text(0.5,0.9,"GAME OVER")
+        stddraw.setFontSize(30)
+        stddraw.text(0.5,0.6,f"SCORE: {score}")
+        stddraw.text(0.5,0.63,f"HIGH SCORE: {high_score}")
         stddraw.setFontSize(20)
 
         if restartTimer <= 0 and restartTimer != -10:
             return 1 # Play again
         else:
-            if restartTimer != -10:
+            if restartTimer != -10: # if restart timer has not been cancelled
                 restartTimer -= 1
         if restartTimer != -10:
             button[0].text = f"PLAY AGAIN [{restartTimer/10}]"
         else:
             button[0].text = f"PLAY AGAIN"
+            if len(button) == 3:
+                del button[2]
+                del buttonnums[2]
 
         for k in range(len(button)):
             button[k].draw()
@@ -131,12 +148,12 @@ def lost_menu(pointsarray = [0,0]):
             match selectedbutton:
                 case 0:
                     return 1    #play again
-                case 1: #cancel play again
-                    restartTimer = -10
-                case 2:
+                case 1:
                     return 2 #return to main menu
+                case 2: #cancel play again
+                    restartTimer = -10
                     
-            
+
 
 def help_menu(): #TODO poulate help menu
     while 1==1:
@@ -149,6 +166,16 @@ def help_menu(): #TODO poulate help menu
         stddraw.setFontSize(15)
         stddraw.text(0.5,0.77,"Press K for keybindings")
         stddraw.setFontSize(20)
+        stddraw.text(0.5,0.6,"You must destroy the sooty enemies by shooting them")
+        stddraw.text(0.5,0.57,"When an enemy hits the bottom of the screen or your health")
+        stddraw.text(0.5,0.54,"drops to 0, the game ends.")
+        stddraw.text(0.5,0.51,"Upon hitting an enemy, its health is reduced by 1.")
+        stddraw.text(0.5,0.48,"When you kill an enemy, your score increases by 1.")
+        stddraw.text(0.5,0.45,"(In endless mode) Every 10 score, you gain 1 health.")
+        stddraw.text(0.5,0.42,"To enter endless mode, select CUSTOM LEVEL & enter \"endless_1\".")
+        stddraw.text(0.5,0.39,"Double tapping \"a\" or \"d\" will make you move faster.")
+        stddraw.text(0.5,0.36,"Getting hit by an enemy will reduce your health.")
+        stddraw.text(0.5,0.33,"You will gain a short period of invincibility when you're hit.")
         stddraw.show(100)
         if stddraw.hasNextKeyTyped():
             match stddraw.nextKeyTyped():
@@ -166,8 +193,6 @@ def pause_menu():
         stddraw.text(0.5,0.9,"GAME PAUSED")
         stddraw.setFontSize(20)
         stddraw.text(0.5,0.8,"Press ESC to resume")
-        stddraw.setFontSize(15)
-        stddraw.text(0.5,0.75,"Press H for help")
         stddraw.setFontSize(20)
         for k in range(len(button)):
             button[k].draw()
@@ -259,8 +284,8 @@ def customlvlmenu():
                     match selectedbutton:
                         case 0:
                             
-                            if inputmode == False: return f"levels/default/{teststr}"
-                            else: return f"levels/default/{teststr[:-1]}"
+                            if inputmode == False: return f"levels/user/{teststr}"
+                            else: return f"levels/user/{teststr[:-1]}"
                         case 1:
                             return -1
 
