@@ -2,8 +2,8 @@
 
 Levels are stored in a file in /levels/
 
-- Premade levels are stored in /levels/default
-- User generated levels are stored in /levels/user
+- Premade levels are stored in /levels/default/
+- User generated levels are stored in /levels/user/
 
 ## SYNTAX
 
