@@ -20,8 +20,6 @@ Each event has 5 arguments, seperated by `|`. These arguments are all of type `i
 (arguments indicated by * are optional for some event types and can be left as 0)
 ```
 
-
-
 ## EVENTS
 
 |Event          | Arguments     |               |               |               |               | Notes     |  
@@ -42,7 +40,7 @@ Each event has 5 arguments, seperated by `|`. These arguments are all of type `i
 
 ### HIGH SCORE
 
-The high score (event 42) is and exception to the normal event syntax. It uses X_coord as a counter to store the high score. It must be positioned in the first line of the level file.
+The high score (event 42) is an exception to the normal event syntax. It uses X_coord as a counter to store the high score. It must be positioned in the first line of the level file.
 
 ## LEVEL PROGRESSION
 
@@ -54,4 +52,4 @@ For example in `My Level_1` `NEXT_LVL` will cause `My Level_2` to be opened and 
 
 ## BOSS
 
-The boss can be spawned one or multiple time in a level. The events `BOSS` or `BOSS_RANDX` can be used. These events will pause event execution until the boss is defeated. Before `BOSS` or `BOSS_RANDX` is called, `WAIT_EMPTY` should be called  to ensure that no enemies remain, followed by `BOSS_BG`. After `BOSS` or `BOSS_RANDX`, `NORMAL_BG` should be called  to set the background back to normal.
+The boss can be spawned once or multiple times in a level. The events `BOSS` or `BOSS_RANDX` can be used. These events will pause event execution until the boss is defeated. Before `BOSS` or `BOSS_RANDX` is called, `WAIT_EMPTY` should be called  to ensure that no enemies remain, followed by `BOSS_BG`. After `BOSS` or `BOSS_RANDX`, `NORMAL_BG` should be called  to set the background back to normal.

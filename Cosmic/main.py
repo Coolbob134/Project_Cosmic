@@ -1,6 +1,6 @@
 import stdio, sys, random, picture, stddraw
 
-import menus,singleplayer,leveleditor
+import menus,singleplayer
 
 def main():
     

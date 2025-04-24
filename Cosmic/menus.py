@@ -1,13 +1,13 @@
 import stddraw,time
 
-import leveleditor
+
 from buttons import btn
 from singleplayer import mainloop
 
 def start_menu():
     
-    buttonnums = [[0.5,0.7,0.04,0.12],[0.5,0.6,0.04,0.12],[0.5,0.5,0.04,0.12],[0.5,0.4,0.04,0.12],[0.5,0.3,0.04,0.12]]
-    button = [btn(0.5,0.7,0.04,0.12,"PLAY"),btn(0.5,0.6,0.04,0.12,"CUSTOM LEVEL"),btn(0.5,0.5,0.04,0.12,"LEVEL EDITOR"),btn(0.5,0.4,0.04,0.12,"HELP"),btn(0.5,0.3,0.04,0.12,"EXIT")]
+    buttonnums = [[0.5,0.7,0.04,0.12],[0.5,0.6,0.04,0.12],[0.5,0.5,0.04,0.12],[0.5,0.4,0.04,0.12]]
+    button = [btn(0.5,0.7,0.04,0.12,"PLAY"),btn(0.5,0.6,0.04,0.12,"CUSTOM LEVEL"),btn(0.5,0.5,0.04,0.12,"HELP"),btn(0.5,0.4,0.04,0.12,"EXIT")]
     selectedbutton = -1
 
 
@@ -36,7 +36,7 @@ def start_menu():
             case 0:
                 endstate = mainloop(1)
                 stddraw.setPenColor(stddraw.BLACK)
-                match endstate[0]: #TODO Add end screens
+                match endstate[0]:
                     case 1:
                         match end_menu(endstate):
                             case 1:
@@ -57,7 +57,7 @@ def start_menu():
                 lvlpath = customlvlmenu()
                 if lvlpath != -1:
                     
-                    endstate = mainloop(3,lvlpath=lvlpath)
+                    endstate = mainloop(2,lvlpath=lvlpath)
                     match endstate[0]:
                         case 1:
                             match end_menu(endstate):
@@ -76,11 +76,8 @@ def start_menu():
                 stddraw.setPenColor(stddraw.BLACK)
             case 2:
                 selectedbutton = -1
-                leveleditor.lvleditor_mainmenu()
-            case 3:
-                selectedbutton = -1
                 help_menu()
-            case 4:
+            case 3:
                 
                 exit()
     
@@ -155,7 +152,7 @@ def end_menu(argarray = [0,0,0], won = False):
                     
 
 
-def help_menu(): #TODO poulate help menu
+def help_menu():
     while 1==1:
         stddraw.clear(stddraw.GRAY)
         stddraw.setFontSize(40)
@@ -176,6 +173,10 @@ def help_menu(): #TODO poulate help menu
         stddraw.text(0.5,0.39,"Double tapping \"a\" or \"d\" will make you move faster.")
         stddraw.text(0.5,0.36,"Getting hit by an enemy will reduce your health.")
         stddraw.text(0.5,0.33,"You will gain a short period of invincibility when you're hit.")
+        stddraw.text(0.5,0.30,"(For advanced users) To create a custom level, read \"levels.md\".")
+        stddraw.text(0.5,0.27,"To play a custom level, enter the level's name in the CUSTOM LEVEL tab.")
+
+
         stddraw.show(100)
         if stddraw.hasNextKeyTyped():
             match stddraw.nextKeyTyped():
@@ -222,7 +223,7 @@ def pause_menu():
 
     stddraw.clear(stddraw.GRAY)
 
-def keybindings(): #TODO update keybindings
+def keybindings():
     while 1==1:
         stddraw.clear(stddraw.GRAY)
         stddraw.setFontSize(40)
@@ -243,8 +244,12 @@ def keybindings(): #TODO update keybindings
         stddraw.text(0.55,0.6,"space")
         stddraw.text(0.45,0.575,"PAUSE")
         stddraw.text(0.55,0.575,"esc")
-        stddraw.text(0.45,0.55,"SPAWN ENEMY")
-        stddraw.text(0.55,0.55,"p")
+        stddraw.text(0.45,0.55,"AIM LEFT")
+        stddraw.text(0.55,0.55,"q")
+        stddraw.text(0.45,0.525,"AIM RIGHT")
+        stddraw.text(0.55,0.525,"e")
+        stddraw.text(0.45,0.5,"STOP AIM")
+        stddraw.text(0.55,0.5,"w")
         
         stddraw.setFontSize(20)
         stddraw.show(100)
@@ -302,7 +307,7 @@ def customlvlmenu():
             else:
                 
                 match nextkey:
-                    case '\r': return f"levels/default/{teststr}"
+                    case '\r': return f"levels/user/{teststr}"
 
 def inputTest(): #TODO remove func
     inputmode = False

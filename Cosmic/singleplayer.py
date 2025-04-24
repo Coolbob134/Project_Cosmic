@@ -91,7 +91,8 @@ class level:
         self.level_path = path.split("_")
         self.level_path.pop()
         self.level_path = '_'.join(self.level_path)
-        print(self.level_path)
+        self.level_name = self.level_path.split("/")[-1] + f" {self.level_counter}"
+        
         with open(path,'r') as infile:
             for line in infile.readlines():
                 line = line.strip()
@@ -109,6 +110,7 @@ class level:
     def loadnextlevel(self):
         self.contents = []
         self.level_counter += 1
+        self.level_name = self.level_name.split(" ")[0] + f" {self.level_counter}"
         with open(f"{self.level_path}_{self.level_counter}",'r') as infile:
             for line in infile.readlines():
                 line = line.strip()
@@ -123,7 +125,7 @@ class level:
         self.nexttimer = self.contents[0][4]
         
 
-class boss: # TODO add boss mechanics
+class boss:
     x = 0
     y = 0
     size = 0
@@ -255,7 +257,7 @@ class boss: # TODO add boss mechanics
 
         return bulletarr
 
-class boss_bullet: #TODO fully implement boss bullet
+class boss_bullet: 
 
     active = True
     
@@ -441,7 +443,7 @@ class player: #TODO check if movement is compliant
         # if self.y > 768:
         #     self.y = 768
 
-class bullet: #TODO add non straight bullet velocities and sprite, [particle system]
+class bullet:
     x = 0
     y = 0
     vel = [0,0]
@@ -536,7 +538,7 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
     enemy_state_cooldown = 5
 
     bullet_lookuptbl = {} #lookup table for bullet x and y velocity based on player's rotation (in degrees)
-    bullet_speed = 64 #const for bullets speed
+    bullet_speed = 32 #const for bullets speed
 
     for k in range(0,190,5):
         bullet_lookuptbl[k] = [bullet_speed*math.cos(math.radians(k)),bullet_speed*math.sin(math.radians(k))]
@@ -548,8 +550,6 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
         case 1:
             lvl.loadlevelfromfile("levels/default/level_1")
         case 2:
-            lvl.loadlevelfromfile("levels/default/endless")
-        case 3:
             lvl.loadlevelfromfile(lvlpath)
 
 
@@ -611,7 +611,6 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
                     if menus.pause_menu() == -1:
                         return [-1,0,0]
                     
-                case 'p': enemies.append(enemy(random.randrange(16,784,16),784,2)); lvl.isempty = False
                 
 
         plr.update()
@@ -622,9 +621,9 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
             
             counter2 = 0
             while counter2 < len(enemies): #Checks every enemy for collision.
-                if (bullets[counter].x >= enemies[counter2].x-enemies[counter2].size*2 and bullets[counter].x <= enemies[counter2].x+enemies[counter2].size*2) and (bullets[counter].y >= enemies[counter2].y-enemies[counter2].size*2 and bullets[counter].y <= enemies[counter2].y+enemies[counter2].size*2) and bullets[counter].active == True:
+                if (bullets[counter].x >= enemies[counter2].x-(enemies[counter2].size)-16 and bullets[counter].x <= enemies[counter2].x+(enemies[counter2].size)+16) and (bullets[counter].y >= enemies[counter2].y-enemies[counter2].size and bullets[counter].y <= enemies[counter2].y+enemies[counter2].size) and bullets[counter].active == True:
                     enemies[counter2].health -= 1
-                    bullets[counter].active == False #effectively deletes current bullet
+                    bullets[counter].active = False #effectively deletes current bullet
                     if enemies[counter2].health <= 0:
                         plr.score+=1
                         plr.healthgained = False
@@ -650,7 +649,8 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
                     counter2 += 1
             
             
-            bullets[counter].update()
+            if bullets[counter].active == True:
+                bullets[counter].update()
             if bullets[counter].active == False:
                 del bullets[counter] #deletes off screen bullets or bullets that have hit an enemy
             else:
@@ -733,7 +733,7 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
         
         
         match lvlarray[0]:  #actions for the level's state/events
-            case 0:         # level is empty[end of level]    #TODO-> add end screen if it happens
+            case 0:         # level is empty[end of level]
                 if plr.score >= lvl.high_score:
                     if lvl.high_score != -1:
                         with open(f"{lvl.level_path}_1","r") as infile:
@@ -774,7 +774,7 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
             if endless_enemycooldown <= 0:
                 enemies.append(enemy(random.randrange(16,784,16),768,1))
                 lvl.isempty = False
-                endless_enemycooldown = random.randrange(1,100)
+                endless_enemycooldown = random.randrange(1,20)
             else:
                 endless_enemycooldown -= 1
             
@@ -785,5 +785,6 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
 
         stddraw.text(0.9,0.97,f"SCORE: {plr.score} ")
         stddraw.text(0.9,0.95,f"HEALTH: {plr.health}")
+        stddraw.text(0.9,0.93,f"LEVEL: {lvl.level_name}")
         stddraw.show(50)
 
