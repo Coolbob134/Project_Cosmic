@@ -110,7 +110,7 @@ class level:
     def loadnextlevel(self):
         self.contents = []
         self.level_counter += 1
-        self.level_name = self.level_name.split(" ")[0] + f" {self.level_counter}"
+        self.level_name = self.level_name.split(" ")[:-1] + f" {self.level_counter}"
         with open(f"{self.level_path}_{self.level_counter}",'r') as infile:
             for line in infile.readlines():
                 line = line.strip()
