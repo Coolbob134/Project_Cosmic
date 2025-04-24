@@ -1,5 +1,7 @@
 # Python file to draw buttons using stddraw
-
+#--------------------------------------------
+# written by Alexander
+#--------------------------------------------
 import stddraw
 
 class btn:

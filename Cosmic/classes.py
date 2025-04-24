@@ -1,5 +1,9 @@
 import stddraw, random, math, picture
 
+
+#--------------------------------------------
+# class written by Alexander
+#--------------------------------------------
 class level:
 
     contents = []   # level contents loaded in from file
@@ -119,6 +123,9 @@ class level:
                 self.contents.append(args)
         self.nexttimer = self.contents[0][4]
         
+#--------------------------------------------
+# class written by Alexander
+#--------------------------------------------
 
 class boss:
     x = 0
@@ -251,7 +258,9 @@ class boss:
                 stddraw.picture(self.sprite_alternate,self.x/stddraw._canvasWidth,self.y/stddraw._canvasHeight,self.size/stddraw._canvasWidth,self.size/stddraw._canvasHeight)
 
         return bulletarr
-
+#--------------------------------------------
+# class written by Alexander
+#--------------------------------------------
 class boss_bullet: 
 
     active = True
@@ -279,7 +288,10 @@ class boss_bullet:
 
 
 
-        
+#--------------------------------------------
+# class written by Alexander
+# corrected by Cameron
+#--------------------------------------------  
 
 class enemy: #TODO check whether random movement is ok [change lvl 1]
     x = 0
@@ -342,7 +354,9 @@ class enemy: #TODO check whether random movement is ok [change lvl 1]
             self.sprite_timer -= 1
         
 
-
+#--------------------------------------------
+# class written by Ann
+#--------------------------------------------
 
 class player: 
     x = 0
@@ -352,7 +366,7 @@ class player:
     invincibility_timer = 0
     crosshair_lookup = {} #lookup table for the crosshair position
 
-    def __init__(self):
+    def __init__(self,plrnum = 1):
         self.health = 10
         self.score = 0
         self.x = 32
@@ -362,9 +376,16 @@ class player:
         self.move_state = 0
         self.angle_move_state = 0
 
-        self.sprite = picture.Picture("assets/player/player.png")
-        self.sprite_alternate1 = picture.Picture("assets/player/player_alternate1.png")
-        self.sprite_hurt = picture.Picture("assets/player/player_hurt.png")
+        self.playernum = plrnum
+        if plrnum == 1:
+            self.sprite = picture.Picture("assets/player/player.png")
+            self.sprite_alternate1 = picture.Picture("assets/player/player_alternate1.png")
+            self.sprite_hurt = picture.Picture("assets/player/player_hurt.png")
+        else:
+            self.sprite = picture.Picture("assets/player/player2.png")
+            self.sprite_alternate1 = picture.Picture("assets/player/player2_alternate1.png")
+            self.sprite_hurt = picture.Picture("assets/player/player2_hurt.png")
+
         self.crosshair_sprite = picture.Picture("assets/player/crosshair.png")
         self.spritestate = 1
         self.spritetimer = 10
@@ -438,6 +459,11 @@ class player:
         # if self.y > 768:
         #     self.y = 768
 
+#--------------------------------------------
+# class written by Alexander
+# corrected by Ann
+#--------------------------------------------
+
 class bullet:
     x = 0
     y = 0
@@ -487,6 +513,10 @@ class bullet:
                 tempcounter-=1
             else:
                 k+= 1
+
+#--------------------------------------------
+# class written by Alexander
+#--------------------------------------------
 
 class particle:
 

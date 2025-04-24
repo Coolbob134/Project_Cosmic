@@ -1,21 +1,24 @@
 import stddraw, random, math
 from classes import *
 import menus
-import picture
+import audio
 
-# TODO move classes to seperate file
-# TODO add audio and multiplayer
 
-# Multiplayer controls
-# i,j,k,l,u,o,m
-#
+# multiplayer movement:
+# i,j,k,l,m,u,o
 #
 #
 
+#--------------------------------------------
+# written by Alexander, Cameron and Ann
+#--------------------------------------------
 def mainloop(mode,lvlpath = "levels/default/level_1"):
 
     plr = player()
+    plr2 = player(plrnum=2)
     bullets = []
+    bulletdelay = 10
+    bulletdelay2 = 10
     counter = 0
     enemies = []
     boss_arr = []
@@ -46,6 +49,7 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
     stddraw.setPenColor(stddraw.LIGHT_GRAY)
 
     
+    plr2.x = 600
 
     while gameactive == True:
         
@@ -58,7 +62,8 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
         
         
 
-        if plr.health <= 0:
+        if plr.health <= 0 or plr2.health <= 0:
+            audio.gameover()
             gameactive = False
             if plr.score >= lvl.high_score:
                     if lvl.high_score != -1:
@@ -96,14 +101,48 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
                 case 'q': plr.angle_move_state = 1
                 case 'e': plr.angle_move_state = 2
                 case 'w': plr.angle_move_state = 0
-                case ' ': bullets.append(bullet(plr.x,plr.y,bullet_lookuptbl[plr.angle]))
+                case ' ': 
+                    if bulletdelay <= 0:
+                        audio.shoot_sound()
+                        bullets.append(bullet(plr.x,plr.y,bullet_lookuptbl[plr.angle]))
+                        bulletdelay = 10
                 case '\x1b': 
                     if menus.pause_menu() == -1:
                         return [-1,0,0]
                     
+                case 'j':   # move left
+                    if plr2.move_state == 2:
+                        plr2.move_state = 4 # move faster
+                    else:
+                        if plr2.move_state == 3:
+                            plr2.move_state = 1  # move slower to the right
+                        else:
+                            plr2.move_state = 2
+                case 'l':   # move right
+                    if plr2.move_state == 1:
+                        plr2.move_state = 3 # move faster
+                    else:
+                        if plr2.move_state == 4:
+                            plr2.move_state = 2  #move slower to the left
+                        else:
+                            plr2.move_state = 1
+        
+                case 'k': plr2.move_state = 0 # stop moving
+                case 'u': plr2.angle_move_state = 1
+                case 'o': plr2.angle_move_state = 2
+                case 'i': plr2.angle_move_state = 0
+                case 'm': 
+                    if bulletdelay2 <= 0:
+                        audio.shoot_sound()
+                        bullets.append(bullet(plr2.x,plr2.y,bullet_lookuptbl[plr.angle]))
+                        bulletdelay2 = 10
                 
-
+                    
+                
+        bulletdelay -= 1
+        bulletdelay2 -= 1
         plr.update()
+        plr2.update()
         counter = 0
         counter2 = 0
 
@@ -113,6 +152,7 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
             while counter2 < len(enemies): #Checks every enemy for collision.
                 if (bullets[counter].x >= enemies[counter2].x-(enemies[counter2].size)-16 and bullets[counter].x <= enemies[counter2].x+(enemies[counter2].size)+16) and (bullets[counter].y >= enemies[counter2].y-enemies[counter2].size and bullets[counter].y <= enemies[counter2].y+enemies[counter2].size) and bullets[counter].active == True:
                     enemies[counter2].health -= 1
+                    
                     bullets[counter].active = False #effectively deletes current bullet
                     if enemies[counter2].health <= 0:
                         plr.score+=1
@@ -161,13 +201,18 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
         while counter < len(enemies): #collision for player and enemies
             
             
-            if (enemies[counter].x >= plr.x - enemies[counter].size and enemies[counter].x <= plr.x + enemies[counter].size) and (enemies[counter].y >= plr.y - enemies[counter].size and enemies[counter].y <= plr.y + enemies[counter].size) and enemies[counter].active and player.invincibility_timer == 0:
+            if (enemies[counter].x >= plr.x - enemies[counter].size and enemies[counter].x <= plr.x + enemies[counter].size) and (enemies[counter].y >= plr.y - enemies[counter].size and enemies[counter].y <= plr.y + enemies[counter].size) and enemies[counter].active and plr2.invincibility_timer == 0:
                 plr.invincibility_timer = 50
                 plr.health -= 1
                 enemies[counter].active = False
-                
+            
+            if (enemies[counter].x >= plr2.x - enemies[counter].size and enemies[counter].x <= plr2.x + enemies[counter].size) and (enemies[counter].y >= plr2.y - enemies[counter].size and enemies[counter].y <= plr2.y + enemies[counter].size) and enemies[counter].active and plr2.invincibility_timer == 0:
+                plr2.invincibility_timer = 50
+                plr2.health -= 1
+                enemies[counter].active = False
             
             if enemies[counter].update(enemy_state) == -1: #enemy hit bottom of the screen
+                audio.gameover()
                 if plr.score > lvl.high_score:
                     if lvl.high_score != -1:
                         with open(f"{lvl.level_path}_1","r") as infile:
@@ -223,7 +268,7 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
         
         
         match lvlarray[0]:  #actions for the level's state/events
-            case 0:         # level is empty[end of level]
+            case 0:         # level is empty[end of level] #TODO add game won sound
                 if plr.score >= lvl.high_score:
                     if lvl.high_score != -1:
                         with open(f"{lvl.level_path}_1","r") as infile:
@@ -274,7 +319,8 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
 
 
         stddraw.text(0.9,0.97,f"SCORE: {plr.score} ")
-        stddraw.text(0.9,0.95,f"HEALTH: {plr.health}")
-        stddraw.text(0.9,0.93,f"LEVEL: {lvl.level_name}")
+        stddraw.text(0.9,0.95,f"PLR 1 HEALTH: {plr.health}")
+        stddraw.text(0.9,0.93,f"PLR 2 HEALTH: {plr2.health}")
+        stddraw.text(0.9,0.91,f"LEVEL: {lvl.level_name}")
         stddraw.show(50)
 

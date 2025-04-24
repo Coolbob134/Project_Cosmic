@@ -3,11 +3,16 @@ import stddraw,time
 
 from buttons import btn
 from singleplayer import mainloop
+import multiplayer
+
+#--------------------------------------------
+# written by Alexander
+#--------------------------------------------
 
 def start_menu():
     
-    buttonnums = [[0.5,0.7,0.04,0.12],[0.5,0.6,0.04,0.12],[0.5,0.5,0.04,0.12],[0.5,0.4,0.04,0.12]]
-    button = [btn(0.5,0.7,0.04,0.12,"PLAY"),btn(0.5,0.6,0.04,0.12,"CUSTOM LEVEL"),btn(0.5,0.5,0.04,0.12,"HELP"),btn(0.5,0.4,0.04,0.12,"EXIT")]
+    buttonnums = [[0.5,0.7,0.04,0.12],[0.5,0.6,0.04,0.12],[0.5,0.5,0.04,0.12],[0.5,0.4,0.04,0.12],[0.5,0.3,0.04,0.12]]
+    button = [btn(0.5,0.7,0.04,0.12,"PLAY"),btn(0.5,0.6,0.04,0.12,"CUSTOM LEVEL"),btn(0.5,0.5,0.04,0.12,"MULTIPLAYER"),btn(0.5,0.4,0.04,0.12,"HELP"),btn(0.5,0.3,0.04,0.12,"EXIT")]
     selectedbutton = -1
 
 
@@ -74,10 +79,31 @@ def start_menu():
                         case -1:
                             selectedbutton = -1
                 stddraw.setPenColor(stddraw.BLACK)
+            
             case 2:
+                endstate = multiplayer.mainloop(1)
+                stddraw.setPenColor(stddraw.BLACK)
+                match endstate[0]:
+                    case 1:
+                        match end_menu(endstate):
+                            case 1:
+                                selectedbutton = 0 #play again
+                            case 2:
+                                selectedbutton = -1
+                        
+                    case 2:
+                        match end_menu(endstate,won=True):
+                            case 1:
+                                selectedbutton = 0 #play again
+                            case 2:
+                                selectedbutton = -1
+                    case -1:
+                        selectedbutton = -1
+
+            case 3:
                 selectedbutton = -1
                 help_menu()
-            case 3:
+            case 4:
                 
                 exit()
     
@@ -90,7 +116,11 @@ def start_menu():
         #         match stddraw.nextKeyTyped():
         #             case ' ': break
         #             case 'h': help_menu()
-        
+
+#--------------------------------------------
+# written by Cameron
+#--------------------------------------------
+
 def end_menu(argarray = [0,0,0], won = False):
     
     restartTimer = 100 #10 seconds
@@ -151,7 +181,9 @@ def end_menu(argarray = [0,0,0], won = False):
                     restartTimer = -10
                     
 
-
+#--------------------------------------------
+# written by Cameron
+#--------------------------------------------
 def help_menu():
     while 1==1:
         stddraw.clear(stddraw.GRAY)
@@ -182,6 +214,10 @@ def help_menu():
             match stddraw.nextKeyTyped():
                 case '\x1b': break
                 case 'k': keybindings()
+
+#--------------------------------------------
+# written by Ann
+#--------------------------------------------
 
 def pause_menu():
     buttonnums = [[0.5,0.6,0.04,0.12],[0.5,0.5,0.04,0.12],[0.5,0.4,0.04,0.12],[0.5,0.3,0.04,0.12]]
@@ -222,7 +258,9 @@ def pause_menu():
                     return -1
 
     stddraw.clear(stddraw.GRAY)
-
+#--------------------------------------------
+# written by Cameron
+#--------------------------------------------
 def keybindings():
     while 1==1:
         stddraw.clear(stddraw.GRAY)
@@ -231,6 +269,8 @@ def keybindings():
         stddraw.text(0.5,0.9,"KEYBINDINGS")
         stddraw.setFontSize(20)
         stddraw.text(0.5,0.85,"Press ESC to return")
+        stddraw.setFontSize(30)
+        stddraw.text(0.5,0.75,"Singleplayer")
         stddraw.setFontSize(20)
         stddraw.text(0.45,0.7,"STOP AIM")
         stddraw.text(0.55,0.7,"w")
@@ -248,9 +288,24 @@ def keybindings():
         stddraw.text(0.55,0.55,"q")
         stddraw.text(0.45,0.525,"AIM RIGHT")
         stddraw.text(0.55,0.525,"e")
-        stddraw.text(0.45,0.5,"STOP AIM")
-        stddraw.text(0.55,0.5,"w")
-        
+        stddraw.setFontSize(30)
+        stddraw.text(0.5,0.45,"Multiplayer")
+        stddraw.setFontSize(20)
+        stddraw.text(0.45,0.4,"STOP AIM")
+        stddraw.text(0.55,0.4,"i")
+        stddraw.text(0.45,0.375,"STOP MOVE")
+        stddraw.text(0.55,0.375,"k")
+        stddraw.text(0.45,0.35,"LEFT")
+        stddraw.text(0.55,0.35,"j")
+        stddraw.text(0.45,0.325,"RIGHT")
+        stddraw.text(0.55,0.325,"l")
+        stddraw.text(0.45,0.3,"FIRE")
+        stddraw.text(0.55,0.3,"m")
+        stddraw.text(0.45,0.275,"AIM LEFT")
+        stddraw.text(0.55,0.275,"u")
+        stddraw.text(0.45,0.25,"AIM RIGHT")
+        stddraw.text(0.55,0.25,"o")
+
         stddraw.setFontSize(20)
         stddraw.show(100)
         if stddraw.hasNextKeyTyped():
@@ -258,6 +313,9 @@ def keybindings():
             match stddraw.nextKeyTyped():
                 case '\x1b':break
 
+#--------------------------------------------
+# written by Alexander
+#--------------------------------------------
 def customlvlmenu():
     inputmode = True
     teststr = '_'
@@ -308,33 +366,3 @@ def customlvlmenu():
                 
                 match nextkey:
                     case '\r': return f"levels/user/{teststr}"
-# Testing inputboxes
-def inputTest(): #TODO remove func
-    inputmode = False
-    teststr = ''
-    nextkey = ''
-    while 1==1:
-        stddraw.clear(stddraw.GRAY)
-        stddraw.setFontSize(40)
-
-        stddraw.text(0.5,0.9,"ENTER LEVEL NAME")
-        stddraw.setFontSize(30)
-        stddraw.text(0.5,0.8,f"{teststr}")
-        stddraw.show(10)
-        if stddraw.hasNextKeyTyped():
-            nextkey = stddraw.nextKeyTyped()
-            if inputmode:
-                
-                match nextkey:
-                    case '\x1b':teststr = teststr[:-1];inputmode = False
-                    case '\x08':teststr = teststr[:-2]+'_'
-                    case '\r':teststr = teststr[:-1];inputmode = False
-                    case '\t':teststr = teststr[:-1];inputmode = False
-                    case _: teststr = teststr[:-1]+nextkey+'_'
-                
-                
-            else:
-                match nextkey:
-                    case '\x1b':break
-                    case 'h': help_menu()
-                    case '\r': inputmode = True;teststr += '_'

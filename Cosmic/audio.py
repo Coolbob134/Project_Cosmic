@@ -2,12 +2,11 @@ import stdaudio
 from threading import Thread, Event
 
 #--------------------------------------------
-#written by Ann
+# written by Ann
 #--------------------------------------------
 
 def _shoot_sound():
-    stdaudio.playFile("assets/sounds/retro-laser")
-
+    stdaudio.playFile("assets/sounds/Splash_0")
 
 def shoot_sound():
     Thread(target=_shoot_sound,daemon=True).start()

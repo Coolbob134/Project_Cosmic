@@ -5,7 +5,9 @@ import audio
 
 # TODO multiplayer
 # TODO edit movement of enemies on lvl 1
-
+#--------------------------------------------
+# written by Alexander, Cameron and Ann
+#--------------------------------------------
 def mainloop(mode,lvlpath = "levels/default/level_1"):
 
     plr = player()
@@ -54,6 +56,7 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
         
 
         if plr.health <= 0:
+            audio.gameover()
             gameactive = False
             if plr.score >= lvl.high_score:
                     if lvl.high_score != -1:
@@ -112,6 +115,7 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
             while counter2 < len(enemies): #Checks every enemy for collision.
                 if (bullets[counter].x >= enemies[counter2].x-(enemies[counter2].size)-16 and bullets[counter].x <= enemies[counter2].x+(enemies[counter2].size)+16) and (bullets[counter].y >= enemies[counter2].y-enemies[counter2].size and bullets[counter].y <= enemies[counter2].y+enemies[counter2].size) and bullets[counter].active == True:
                     enemies[counter2].health -= 1
+                    
                     bullets[counter].active = False #effectively deletes current bullet
                     if enemies[counter2].health <= 0:
                         plr.score+=1
@@ -167,6 +171,7 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
                 
             
             if enemies[counter].update(enemy_state) == -1: #enemy hit bottom of the screen
+                audio.gameover()
                 if plr.score > lvl.high_score:
                     if lvl.high_score != -1:
                         with open(f"{lvl.level_path}_1","r") as infile:
@@ -222,7 +227,7 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
         
         
         match lvlarray[0]:  #actions for the level's state/events
-            case 0:         # level is empty[end of level]
+            case 0:         # level is empty[end of level] #TODO add game won sound
                 if plr.score >= lvl.high_score:
                     if lvl.high_score != -1:
                         with open(f"{lvl.level_path}_1","r") as infile:
