@@ -308,7 +308,7 @@ def customlvlmenu():
                 
                 match nextkey:
                     case '\r': return f"levels/user/{teststr}"
-
+# Testing inputboxes
 def inputTest(): #TODO remove func
     inputmode = False
     teststr = ''
