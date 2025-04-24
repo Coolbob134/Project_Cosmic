@@ -1,16 +1,21 @@
 import stddraw, random, math
 from classes import *
 import menus
-import audio
+import picture
 
-# TODO multiplayer
-# TODO edit movement of enemies on lvl 1
+# TODO move classes to seperate file
+# TODO add audio and multiplayer
+
+# Multiplayer controls
+# i,j,k,l,u,o,m
+#
+#
+#
 
 def mainloop(mode,lvlpath = "levels/default/level_1"):
 
     plr = player()
     bullets = []
-    bulletdelay = 10
     counter = 0
     enemies = []
     boss_arr = []
@@ -91,17 +96,13 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
                 case 'q': plr.angle_move_state = 1
                 case 'e': plr.angle_move_state = 2
                 case 'w': plr.angle_move_state = 0
-                case ' ': 
-                    if bulletdelay <= 0:
-                        audio.shoot_sound()
-                        bullets.append(bullet(plr.x,plr.y,bullet_lookuptbl[plr.angle]))
-                        bulletdelay = 10
+                case ' ': bullets.append(bullet(plr.x,plr.y,bullet_lookuptbl[plr.angle]))
                 case '\x1b': 
                     if menus.pause_menu() == -1:
                         return [-1,0,0]
                     
                 
-        bulletdelay -= 1
+
         plr.update()
         counter = 0
         counter2 = 0

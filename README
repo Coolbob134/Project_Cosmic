@@ -1,0 +1,37 @@
+# Project_Cosmic
+
+Group 19 CompsciE 214 Project
+
+## Members
+
+Alexander Kruger - 27933636
+Cameron Africa - 28072502
+Ann Jacobs - 27841413
+
+## HOW TO RUN
+
+Run from cosmic with the command "py main.py".
+Click "PLAY" for the default questline.
+User created levels, and an endless mode can be played via "CUSTOM LEVEL".
+[For advanced users] See 'levels.md' for more information on creating custom levels.
+
+## ADVANCED FEATURES
+
+- Improved graphics
+- High score screen
+- Extra lives
+- Harder levels
+- Enemy counterattack
+- Hit points for player and enemies
+- Different enemy types
+- sounds
+- multiplayer
+
+### Additional advanced features
+
+- User input using stddraw
+- Buttons
+- User made levels
+- Endless mode
+
+sounds downloaded from pixelbay
