@@ -3,8 +3,7 @@ from classes import *
 import menus
 import audio
 
-# TODO multiplayer
-# TODO edit movement of enemies on lvl 1
+
 #--------------------------------------------
 # written by Alexander, Cameron and Ann
 #--------------------------------------------
@@ -227,7 +226,7 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
         
         
         match lvlarray[0]:  #actions for the level's state/events
-            case 0:         # level is empty[end of level] #TODO add game won sound
+            case 0:         # level is empty[end of level]
                 if plr.score >= lvl.high_score:
                     if lvl.high_score != -1:
                         with open(f"{lvl.level_path}_1","r") as infile:

@@ -21,7 +21,7 @@ def start_menu():
         stddraw.clear(stddraw.GRAY)
         stddraw.setFontSize(50)
         
-        stddraw.text(0.5,0.9,"PLACEHOLDER_NAME") #TODO get name
+        stddraw.text(0.5,0.9,"EYESORE") 
         stddraw.setFontSize(20)
         for k in range(len(button)):
             button[k].draw()

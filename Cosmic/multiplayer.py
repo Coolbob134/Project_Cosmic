@@ -268,7 +268,7 @@ def mainloop(mode,lvlpath = "levels/default/level_1"):
         
         
         match lvlarray[0]:  #actions for the level's state/events
-            case 0:         # level is empty[end of level] #TODO add game won sound
+            case 0:         # level is empty[end of level]
                 if plr.score >= lvl.high_score:
                     if lvl.high_score != -1:
                         with open(f"{lvl.level_path}_1","r") as infile:
